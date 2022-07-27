@@ -1,0 +1,18 @@
+%% A simple moving average (SMA) strategy
+% 
+% Finally, it is important to remember that any strategy we use has to be formulated 
+% by considering only the previous price values of each tick. This means, that 
+% no future price value can be known beforehand, and as we're considering the 
+% close price of each tick, the current index is unknown until the tick ends, 
+% or the new one starts. As an example, a simple strategy can be formulated 
+% using the Moving Average (MA), which calculates the average price over a 
+% certain window length $L$ of ticks, filtering the signal into a smoother 
+% representation. A possible rule for this strategy is to buy every time the 
+% tick close price cross over the MA line, and sell when it cross under it. 
+% A simple moving average (SMA) strategy can be implemented as follows:
+% ${MA}_{i}(L) = \frac{\sum_{j=i-L}^{i}{close_j}}{L}$
+% ${MA}^{Strategy}_{i}(L) =$ 
+% $\begin{cases} 0 \quad i < L | 1 \quad {MA}_{i-1}(L) > close_{i-1} | -1 \quad otherwise \end{cases}$
+% $\begin{array}{@{}ll@{}} 0 \quad i < L \\ 1 \quad {MA}_{i-1}(L) > close_{i-1} \\  \end{array}$
+% $x^2+e^{\pi i}$ 
+% 

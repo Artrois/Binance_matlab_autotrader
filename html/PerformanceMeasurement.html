@@ -1,0 +1,172 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PerformanceMeasurement</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-05-28"><meta name="DC.source" content="PerformanceMeasurement.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">constructor</a></li><li><a href="#3">register exchange</a></li><li><a href="#4">Trigger update of performance indicators</a></li><li><a href="#5">profit loss over full period</a></li></ul></div><pre class="codeinput"><span class="keyword">classdef</span> PerformanceMeasurement
+    <span class="comment">%Performance measurement module</span>
+    <span class="comment">%   here goes major implementation of different performance</span>
+    <span class="comment">%   measurements of our trading</span>
+
+    <span class="keyword">properties</span>
+        <span class="comment">% containers.Map</span>
+        exchange_api_instances; <span class="comment">% map of exchange API instances. use keys(exchange_api_instances) to retrieve keys associated with exchange instances</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">methods</span>
+</pre><h2 id="2">constructor</h2><pre class="codeinput">        <span class="keyword">function</span> self = PerformanceMeasurement()
+                self.exchange_api_instances = containers.Map;
+        <span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans = 
+
+  PerformanceMeasurement with properties:
+
+    exchange_api_instances: [0&times;1 containers.Map]
+
+</pre><h2 id="3">register exchange</h2><p>inputs:       exchangeName: STRING name of exchange to be registered       exchangeInstance: instance of exchange API</p><pre class="codeinput">        <span class="keyword">function</span> self = setExchange(self, exchangeName, exchangeInstance)
+            <span class="keyword">if</span> ~isa(exchangeName,<span class="string">'char'</span>) || ~ismepty(exchangeInstance)
+                self.exchange_api_instances(exchangeName) = exchangeInstance;
+            <span class="keyword">else</span>
+                error(<span class="string">'PerformanceMeasurement::setExchange(): exchangeName or exchangeInstance parameter not set -&gt; exit'</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+</pre><h2 id="4">Trigger update of performance indicators</h2><p>Once function triggered it will run over all exchanges registered via setExchange(), will fetch according data and will calculate performance values. Make sure that your strategies places orders with unique ID that identifies the strategy. Format for order IDs: STRATEGY_TRAIDINGPAIR-uniqueLongFigure</p><pre class="codeinput">        <span class="keyword">function</span> updatePerformanceIndicators(self)
+            <span class="keyword">if</span> size(self.exchange_api_instances, 1) &gt; 0
+                exchangeInstances = values(self.exchange_api_instances);
+                <span class="keyword">for</span> i=1:size(exchangeInstances, 1)
+                    exchangeInstances{i};
+                <span class="keyword">end</span>
+            <span class="keyword">else</span>
+                warning(<span class="string">'PerformanceMeasurement::updatePerformanceIndicators(): no exchange registered for update the performance'</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+</pre><h2 id="5">profit loss over full period</h2><p>calculates profit/loss over full period of trades. <img src="PerformanceMeasurement_eq15562627898631320374.png" alt="$\sum_{i=1}^{n} sellvalue_{i} - \sum_{i=1}^{m} buyvalue_{i} | n=num(sellings), m=num(buyings)$"></p><pre class="codeinput">        <span class="keyword">function</span> profitLossOverFullPeriod(self, exchangeInstance)
+
+        <span class="keyword">end</span>
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+classdef PerformanceMeasurement
+    %Performance measurement module
+    %   here goes major implementation of different performance
+    %   measurements of our trading 
+    
+    properties
+        % containers.Map
+        exchange_api_instances; % map of exchange API instances. use keys(exchange_api_instances) to retrieve keys associated with exchange instances
+    end
+    
+    methods
+        %% constructor
+        function self = PerformanceMeasurement()
+                self.exchange_api_instances = containers.Map;
+        end
+        
+        %% register exchange
+        % inputs:
+        %       exchangeName: STRING name of exchange to be registered
+        %       exchangeInstance: instance of exchange API
+        function self = setExchange(self, exchangeName, exchangeInstance)
+            if ~isa(exchangeName,'char') || ~ismepty(exchangeInstance)
+                self.exchange_api_instances(exchangeName) = exchangeInstance;
+            else
+                error('PerformanceMeasurement::setExchange(): exchangeName or exchangeInstance parameter not set -> exit');
+            end
+        end
+        
+        %% Trigger update of performance indicators
+        % Once function triggered it will run over all exchanges registered
+        % via setExchange(), will fetch according data and will calculate
+        % performance values. Make sure that your strategies places orders
+        % with unique ID that identifies the strategy. Format for order
+        % IDs: STRATEGY_TRAIDINGPAIR-uniqueLongFigure
+        function updatePerformanceIndicators(self)
+            if size(self.exchange_api_instances, 1) > 0
+                exchangeInstances = values(self.exchange_api_instances);
+                for i=1:size(exchangeInstances, 1)
+                    exchangeInstances{i};
+                end
+            else
+                warning('PerformanceMeasurement::updatePerformanceIndicators(): no exchange registered for update the performance');
+            end
+        end
+        
+        %% profit loss over full period
+        % calculates profit/loss over full period of trades.
+        % $\sum_{i=1}^{n} sellvalue_{i} - \sum_{i=1}^{m} buyvalue_{i} | n=num(sellings), m=num(buyings)$
+        function profitLossOverFullPeriod(self, exchangeInstance)
+            
+        end
+        
+    end
+end
+
+
+##### SOURCE END #####
+--></body></html>

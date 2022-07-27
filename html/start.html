@@ -1,0 +1,474 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Algorithmic Trading in Matlab</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-04"><meta name="DC.source" content="start.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Algorithmic Trading in Matlab</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">start function</a></li><li><a href="#2">Get prices from Exchange</a></li><li><a href="#3">Evaluate Strategy perfomrance</a></li><li><a href="#4">A simple moving average (SMA) strategy</a></li><li><a href="#5">Dual moving average</a></li><li><a href="#6">MACD</a></li><li><a href="#7">mixStrategies function</a></li><li><a href="#8">Fitness function</a></li></ul></div><h2 id="1">start function</h2><pre class="codeinput"><span class="keyword">function</span> start()
+
+trading_pair = <span class="string">"BTCUSD"</span>;
+
+tiledlayout(2,1) <span class="comment">% we use two subplots</span>
+<span class="comment">% Top plot</span>
+nexttile
+
+<span class="comment">%This information can be easily plot in as candles, which indicates the open,</span>
+<span class="comment">%high, low and close price of each tick. The following code shows the hourly</span>
+<span class="comment">%price of the last week.</span>
+btc = getPriceAction(trading_pair, <span class="string">"1h"</span>, 24*7);
+
+
+candle(btc) <span class="comment">%plot canlde sticks</span>
+hold <span class="string">on</span>
+
+<span class="comment">%now create bollinger bands</span>
+[middle,upper,lower]= bollinger(btc);
+CloseBolling = [middle.close, upper.close,<span class="keyword">...</span>
+lower.close];
+plot(middle.Time,CloseBolling)
+title(trading_pair + <span class="string">" candles"</span>)
+
+hold <span class="string">off</span>
+
+<span class="comment">%Using the close price, we can calculate the return of each tick. This indicates</span>
+<span class="comment">%the percent of change with regard the previous tick, which represent the theoretical</span>
+<span class="comment">%gain (or loss) obtained if holding the assets for each tick. And the cumulative</span>
+<span class="comment">%sum of these returns would represent the buy and hold strategy return over the time.</span>
+btc.tickRet = [0; (btc.close(2:end)- btc.close(1:end-1))./btc.close(1:end-1)];
+
+<span class="comment">% Bottom plot</span>
+nexttile
+<span class="comment">%figure % open new plot window for multiple line plotting</span>
+hold <span class="string">on</span>
+plot(btc.Time, btc.tickRet)         <span class="comment">% TickReturns</span>
+plot(btc.Time, cumsum(btc.tickRet)) <span class="comment">% BuyAndHold</span>
+
+
+SMA_str = SMA_strategy(btc, 20); <span class="comment">%20=lagging, 3=leading moving average</span>
+SMA_cumret = evaluateStrategy(btc, SMA_str, 0.001); <span class="comment">%taker fee being 0.001</span>
+
+plot(btc.Time, SMA_cumret)
+legend(<span class="string">'TickReturns'</span>, <span class="string">'BuyAndHold'</span>, <span class="string">'SMA returns'</span>)
+hold <span class="string">off</span>
+
+title(trading_pair + <span class="string">" strategies"</span>)
+grid <span class="string">on</span>;
+
+<span class="comment">% optimization</span>
+aisearch = PSO(@fitnessFunction, 13);
+aisearch.sizePopulation = 100;
+aisearch.maxNoIterations = 100;
+aisearch.start();
+
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="start_01.png" alt=""> <h2 id="2">Get prices from Exchange</h2><p>The response storage in data contains a matrix of 6 columns and 1000 days, with the information of the date; low, high, open and close price of such day and amount of volume trade over it. This information is more useful in a timetable object, which allows a more handy way of manipulating the data, like sorting using the Time column. The following function can be used to obtain the timetable object with the lastest price action of the indicated market ("BTCUSD" for example) and desired interval ("1h" for example).</p><pre class="codeinput"><span class="keyword">function</span> tt = getPriceAction(traidingpair, interval, limit)
+    urlTemp = sprintf(<span class="string">'https://api-pub.bitfinex.com/v2/candles/trade:%s:t%s/hist'</span>, interval, traidingpair);
+    data = webread(urlTemp, <span class="string">'limit'</span>, limit, <span class="string">'sort'</span>, -1);
+    date = datetime(datestr(data(:,1)/86400/1000 + datenum(1970,1,1)));
+    open = data(:,2);
+    close = data(:,3);
+    high = data(:,4);
+    low = data(:,5);
+    vol = data(:,6);
+    tt = timetable(datetime(date), open, high, low, close, vol);
+    tt = sortrows(tt, <span class="string">'Time'</span>);
+    tt = unique(tt);
+<span class="keyword">end</span>
+</pre><h2 id="3">Evaluate Strategy perfomrance</h2><pre class="codeinput"><span class="comment">%With this information, any strategy can be applied over the tick returns by</span>
+<span class="comment">%multiplying a vector that selects the ticks on which the strategy is long</span>
+<span class="comment">%with a value of 1, short with a value of &#8722;1 or without a position with</span>
+<span class="comment">%a value of 0. Then by using the cumulative sum of this multiplication</span>
+<span class="comment">%(cumsum(strategy .* btc.tickRet)) the return over time of such strategy</span>
+<span class="comment">%can be obtained. However, this do not reflect the fees expended every time</span>
+<span class="comment">%an order is executed, which can be included by substracting the difference</span>
+<span class="comment">%of the strategy vector.</span>
+
+<span class="keyword">function</span> cumret = evaluateStrategy(asset, strategy, fees)
+    orders = [0; diff(strategy)];                   <span class="comment">% Change of position</span>
+    <span class="comment">%tickRet = [0; (asset.close(2:end) - asset.close(1:end-1))./asset.close(1:end-1)];</span>
+    <span class="comment">%strategyRet = tickRet .* strategy;              % Strategy Tick Returns</span>
+    strategyRet = asset.tickRet .* strategy;        <span class="comment">% Strategy Tick Returns</span>
+    strategyRet = strategyRet - abs(orders) * fees; <span class="comment">% Add fees</span>
+    cumret = cumprod(1 + strategyRet) - 1;              <span class="comment">% Strategy Cumulative Returns</span>
+<span class="keyword">end</span>
+</pre><h2 id="4">A simple moving average (SMA) strategy</h2><p>Finally, it is important to remember that any strategy we use has to be formulated by considering only the previous price values of each tick. This means, that no future price value can be known beforehand, and as we're considering the close price of each tick, the current index is unknown until the tick ends, or the new one starts. As an example, a simple strategy can be formulated using the Moving Average (MA), which calculates the average price over a certain window length <img src="start_eq11904963258706611165.png" alt="$L$" style="width:11px;height:13px;"> of ticks, filtering the signal into a smoother representation. A possible rule for this strategy is to buy every time the tick close price cross over the MA line, and sell when it cross under it. A simple moving average (SMA) strategy can be implemented as follows: <img src="start_eq03073687299883932083.png" alt="${MA}^{Strategy}_{i}(L) = \Biggm{\lbrace} \begin{array}{@{}ll@{}} 0, \quad i < L \\ 1, \quad {MA}_{i-1}(L) &gt; close_{i-1} \\ -1, \quad otherwise \end{array}$" style="width:282px;height:49px;"></p><pre class="codeinput"><span class="comment">% parameters of the function:</span>
+<span class="comment">% @asset = timeseries with close price</span>
+<span class="comment">% @sliding_window = type of MOVAVG with [20 = lagging indicator, 3 = leading indicator]</span>
+<span class="comment">%</span>
+<span class="keyword">function</span> strategy = SMA_strategy(asset, sliding_window)
+movAvg = movavg(asset.close, <span class="string">'linear'</span>, sliding_window);
+strategy = asset.close &gt; movAvg;
+<span class="comment">% Correct that we bought when the day closes, so that day return</span>
+<span class="comment">% is not counted and selling is apply on the close price of each day</span>
+strategy = [0; strategy(1:end-1)];
+strategy(strategy==0) = -1;        <span class="comment">% Use Short Orders</span>
+
+<span class="comment">% Wait until %sliding_window ticks before starting. this is to allow MA to</span>
+<span class="comment">% calculate over the perior as defined in sliding_window variable</span>
+strategy(1:sliding_window) = 0;
+
+<span class="keyword">end</span>
+</pre><h2 id="5">Dual moving average</h2><p>using a Double Exponential Moving Average (DEMA) strategy requires at least two parameters, being the window length of both EMAs. This strategy considers a fast <img src="start_eq11079111588476573090.png" alt="$(EMA(L_{fast}))$" style="width:90px;height:16px;"> and slow <img src="start_eq10906951179109738022.png" alt="$(EMA(L_{slow}))$" style="width:90px;height:15px;"> signal, on which <img src="start_eq00393846254259276789.png" alt="$L_{slow} &gt; L_{fast}$" style="width:81px;height:15px;"> and positions are made when these price lines crosses each other. This is strategy can be codified as follows: <img src="start_eq11286992283185778841.png" alt="${EMA}^{Strategy}_{i}(L) = \Biggm{\lbrace} \begin{array}{@{}ll@{}} 0, \quad i < L_{slow} \\ 1, \quad {EMA}_{i-1}(L_{slow}) \geq EMA_{i-1}(L_{fast}) \\ -1, \quad otherwise \end{array}$" style="width:375px;height:49px;"></p><pre class="codeinput"><span class="keyword">function</span> strategy = dualMovingAverageStrategy(asset, slowWindow, fastWindow)
+    slowMovAvg = movavg(asset.close, <span class="string">'exponential'</span>, slowWindow);
+    fastMovAvg = movavg(asset.close, <span class="string">'exponential'</span>, fastWindow);
+    strategy = slowMovAvg &gt; fastMovAvg;
+    strategy = [0; strategy(1:end-1)];
+    strategy(strategy==0) = -1;
+    strategy(1:slowWindow) = 0;
+<span class="keyword">end</span>
+</pre><h2 id="6">MACD</h2><p>MACD strategy requires at least three parameters, two exponential moving averages window length of the asset price, and one for the difference between the first two EMAs. This strategy open a long position every time that the MACD Line crosses the MACD Signal Line and the value of the MACD Line is positive, and a short one when the opposite happens. Therefore, it does not always has an active position like MA and DEMA. This behavior is intended to avoid to open short positions on a bullish trend as explained in <a href="https://tradingsim.com/blog/macd/">https://tradingsim.com/blog/macd/</a></p><pre class="codeinput"><span class="keyword">function</span> strategy = MACDStrategy(asset, slowMA, fastMA, ma)
+    emaSlow = movavg(asset.close,<span class="string">'exponential'</span>, fastMA);
+    emaFast = movavg(asset.close,<span class="string">'exponential'</span>, slowMA);
+    MACDLine = emaFast - emaSlow;
+    MACDSignalLine = movavg(MACDLine,<span class="string">'exponential'</span>, ma);
+    MACDbars = MACDLine - MACDSignalLine;
+    strategy = zeros(size(asset.close));
+    strategy(MACDbars &gt; 0 &amp; MACDLine &gt; 0) = 1;
+    strategy(MACDbars &lt; 0 &amp; MACDLine &lt; 0) = -1;
+    strategy = [0; strategy(1:end-1)];
+<span class="keyword">end</span>
+</pre><h2 id="7">mixStrategies function</h2><p>Although these three strategies can be optimized individually with a good computer and a couple hours, when a more sophisticated mixture of strategies is intended to be implemented execution time of brute force is unpractical. One approach could be to use the individual best parameters of these strategies and then optimize the mixture weights between them. Splitting the complexity overall optimization, but resulting in sub-optimal solutions, due to different parameters might result optimal when a combination of strategies is intended as opposite of their individual strategy behavior. Although, several ways of mixing these strategies can be formulated, a simple weighted sum can be implemented as follows. This function considers that when the sum of the strategies positions is higher than 1, then the long positions is confirmed, or lower than -1 indicates a short one. Also, when the sum results is between the range $[&#8722;1,1]$, no consensus is reached, therefore no positions is advised:</p><pre class="error">Error updating Text.
+
+ String scalar or character vector must have valid interpreter syntax: 
+$[&#8722;1,1]$
+</pre><pre class="codeinput"><span class="keyword">function</span> newStrat = mixStrategies(strats)
+    sumStrat = sum(strats, 2);
+    newStrat = zeros(size(strats, 1), 1);
+    newStrat(sumStrat &gt;= 1) = 1;
+    newStrat(sumStrat &lt;= -1) = -1;
+<span class="keyword">end</span>
+</pre><h2 id="8">Fitness function</h2><p>Given the higher number of parameters in a mixture of strategies, other optimization methods can be applied to find efficient solutions quickly. Previous works have make use of Metaheuristics Algorithms to find sub-optimal parameters for single strategies, such as the moving average in (Lee et al. 2005), or a mixture of them in (S.Tawfik, Badr, and Abdel-Rahman 2013) (Contreras, Hidalgo, and N&uacute;&ntilde;ez-Letamendia 2013) (Stasinakis et al. 2016) (Hu et al. 2015). Metaheuristics Algorithms are designed to operate as black boxes, in such way that their application results relatively easy. In this case, the open source AISearch toolbox(Reyna-Orta 2019) (<a href="https://github.com/aeroreyna/AISearchMatlab">https://github.com/aeroreyna/AISearchMatlab</a>) provides the Metaheuristics implementation. For the case of the application of trading strategy optimization, these can be applied by selecting the dimensionality of the problem as the number of parameters to be adjusted, a function that transform each dimensionality between the desired boundaries and a fitness function that evaluates the solutions offers by the algorithm. If the MA, DEMA, MACD and RSI strategies are considered, then there is 2, 3, 4, and 4 parameters to be found respectively, considering the weight of the strategy as well. Therefore, the dimensionality of the problem becomes 13, and each dimension is manipulated to belong between the boundaries of each strategy. The following function shows an implementation of the designed fitness function, which calculates the strategy of each indicator and their weighted mixture. This mix strategy is evaluated against the historical data, and the final return is used as fitness value.</p><pre class="codeinput"><span class="keyword">function</span> y = fitnessFunction(x)
+  bounds = [1000, 1000, 1000, 500, 500, 50, 50, 50, 500, 1, 1, 1, 1];
+  MA_Strategy = movingAverageStrategy(asset, ceil(xT(1)));
+  DMA_Strategy = dualMovingAverageStrategy(asset, ceil(xT(2)), ceil(xT(3)));
+  MACD_Strategy = MACDStrategy(asset, ceil(xT(4)), ceil(xT(5)), ceil(xT(6)));
+  RSI_Strategy = rsiStrategy(asset, ceil(xT(7)), 100 - ceil(xT(8)), ceil(xT(9)));
+  Mix_Strategy = mixStrategies2(xT(end-3:end).*[MA_Strategy, DMA_Strategy, MACD_Strategy, RSI_Strategy]);
+  Mix_cumret = this.evaluateStrategy(asset, Mix_Strategy, fees);
+  y = assetR.Mix_cumret(end);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Unrecognized function or variable 'asset'.
+
+Error in start&gt;fitnessFunction (line 236)
+  MA_Strategy = movingAverageStrategy(asset, ceil(xT(1)));
+
+Error in metaheuristic/evalPopulation (line 140)
+                fit = self.fitnessFunction(population);
+
+Error in metaheuristic/start (line 70)
+                self.evalPopulation();
+
+Error in start (line 62)
+aisearch.start();
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Algorithmic Trading in Matlab
+%
+
+%% start function
+%
+%
+
+function start()
+
+trading_pair = "BTCUSD";
+
+tiledlayout(2,1) % we use two subplots
+% Top plot
+nexttile
+
+%This information can be easily plot in as candles, which indicates the open, 
+%high, low and close price of each tick. The following code shows the hourly 
+%price of the last week.
+btc = getPriceAction(trading_pair, "1h", 24*7);
+
+
+candle(btc) %plot canlde sticks
+hold on
+
+%now create bollinger bands
+[middle,upper,lower]= bollinger(btc);
+CloseBolling = [middle.close, upper.close,... 
+lower.close];
+plot(middle.Time,CloseBolling)
+title(trading_pair + " candles")
+
+hold off
+
+%Using the close price, we can calculate the return of each tick. This indicates 
+%the percent of change with regard the previous tick, which represent the theoretical 
+%gain (or loss) obtained if holding the assets for each tick. And the cumulative 
+%sum of these returns would represent the buy and hold strategy return over the time.
+btc.tickRet = [0; (btc.close(2:end)- btc.close(1:end-1))./btc.close(1:end-1)];
+
+% Bottom plot
+nexttile
+%figure % open new plot window for multiple line plotting
+hold on
+plot(btc.Time, btc.tickRet)         % TickReturns
+plot(btc.Time, cumsum(btc.tickRet)) % BuyAndHold
+
+
+SMA_str = SMA_strategy(btc, 20); %20=lagging, 3=leading moving average
+SMA_cumret = evaluateStrategy(btc, SMA_str, 0.001); %taker fee being 0.001
+
+plot(btc.Time, SMA_cumret)
+legend('TickReturns', 'BuyAndHold', 'SMA returns')
+hold off
+
+title(trading_pair + " strategies")
+grid on;
+
+% optimization
+aisearch = PSO(@fitnessFunction, 13);
+aisearch.sizePopulation = 100;
+aisearch.maxNoIterations = 100;
+aisearch.start();
+
+end
+
+%% Get prices from Exchange
+% The response storage in data contains a matrix of 6 columns and 1000 days, 
+% with the information of the date; low, high, open and close price of such 
+% day and amount of volume trade over it. This information is more useful in
+% a timetable object, which allows a more handy way of manipulating the data, 
+% like sorting using the Time column. The following function can be used to 
+% obtain the timetable object with the lastest price action of the indicated 
+% market ("BTCUSD" for example) and desired interval ("1h" for example).
+
+function tt = getPriceAction(traidingpair, interval, limit)
+    urlTemp = sprintf('https://api-pub.bitfinex.com/v2/candles/trade:%s:t%s/hist', interval, traidingpair);
+    data = webread(urlTemp, 'limit', limit, 'sort', -1);
+    date = datetime(datestr(data(:,1)/86400/1000 + datenum(1970,1,1)));
+    open = data(:,2);
+    close = data(:,3);
+    high = data(:,4);
+    low = data(:,5);
+    vol = data(:,6);
+    tt = timetable(datetime(date), open, high, low, close, vol);
+    tt = sortrows(tt, 'Time');
+    tt = unique(tt);
+end
+
+
+%% Evaluate Strategy perfomrance
+%With this information, any strategy can be applied over the tick returns by 
+%multiplying a vector that selects the ticks on which the strategy is long 
+%with a value of 1, short with a value of −1 or without a position with 
+%a value of 0. Then by using the cumulative sum of this multiplication 
+%(cumsum(strategy .* btc.tickRet)) the return over time of such strategy 
+%can be obtained. However, this do not reflect the fees expended every time 
+%an order is executed, which can be included by substracting the difference 
+%of the strategy vector.
+
+function cumret = evaluateStrategy(asset, strategy, fees)
+    orders = [0; diff(strategy)];                   % Change of position
+    %tickRet = [0; (asset.close(2:end) - asset.close(1:end-1))./asset.close(1:end-1)];
+    %strategyRet = tickRet .* strategy;              % Strategy Tick Returns
+    strategyRet = asset.tickRet .* strategy;        % Strategy Tick Returns
+    strategyRet = strategyRet - abs(orders) * fees; % Add fees
+    cumret = cumprod(1 + strategyRet) - 1;              % Strategy Cumulative Returns
+end
+
+%% A simple moving average (SMA) strategy
+% 
+% Finally, it is important to remember that any strategy we use has to be formulated 
+% by considering only the previous price values of each tick. This means, that 
+% no future price value can be known beforehand, and as we're considering the 
+% close price of each tick, the current index is unknown until the tick ends, 
+% or the new one starts. As an example, a simple strategy can be formulated 
+% using the Moving Average (MA), which calculates the average price over a 
+% certain window length $L$ of ticks, filtering the signal into a smoother 
+% representation. A possible rule for this strategy is to buy every time the 
+% tick close price cross over the MA line, and sell when it cross under it. 
+% A simple moving average (SMA) strategy can be implemented as follows:
+% ${MA}^{Strategy}_{i}(L) = \Biggm{\lbrace} \begin{array}{@{}ll@{}} 0, \quad i < L \\ 
+% 1, \quad {MA}_{i-1}(L) > close_{i-1} \\ 
+% -1, \quad otherwise \end{array}$
+
+% parameters of the function:
+% @asset = timeseries with close price
+% @sliding_window = type of MOVAVG with [20 = lagging indicator, 3 = leading indicator]
+%
+function strategy = SMA_strategy(asset, sliding_window)
+movAvg = movavg(asset.close, 'linear', sliding_window);
+strategy = asset.close > movAvg;
+% Correct that we bought when the day closes, so that day return
+% is not counted and selling is apply on the close price of each day
+strategy = [0; strategy(1:end-1)];
+strategy(strategy==0) = -1;        % Use Short Orders
+
+% Wait until %sliding_window ticks before starting. this is to allow MA to 
+% calculate over the perior as defined in sliding_window variable
+strategy(1:sliding_window) = 0;                 
+                                                
+end
+
+%% Dual moving average
+%
+% using a Double Exponential Moving Average (DEMA) strategy requires at 
+% least two parameters, being the window length of both EMAs. This strategy 
+% considers a fast $(EMA(L_{fast}))$ and slow $(EMA(L_{slow}))$ signal, on which
+% $L_{slow} > L_{fast}$ and positions are made when these price lines crosses 
+% each other. This is strategy can be codified as follows:
+% ${EMA}^{Strategy}_{i}(L) = \Biggm{\lbrace} \begin{array}{@{}ll@{}} 0, \quad i < L_{slow} \\ 
+% 1, \quad {EMA}_{i-1}(L_{slow}) \geq EMA_{i-1}(L_{fast}) \\ 
+% -1, \quad otherwise \end{array}$
+%
+function strategy = dualMovingAverageStrategy(asset, slowWindow, fastWindow)
+    slowMovAvg = movavg(asset.close, 'exponential', slowWindow);
+    fastMovAvg = movavg(asset.close, 'exponential', fastWindow);
+    strategy = slowMovAvg > fastMovAvg;
+    strategy = [0; strategy(1:end-1)];
+    strategy(strategy==0) = -1;
+    strategy(1:slowWindow) = 0;
+end
+
+%% MACD
+%
+% MACD strategy requires at least three parameters, two exponential moving 
+% averages window length of the asset price, and one for the difference between
+% the first two EMAs. This strategy open a long position every time that the 
+% MACD Line crosses the MACD Signal Line and the value of the MACD Line is 
+% positive, and a short one when the opposite happens. Therefore, it does not 
+% always has an active position like MA and DEMA. This behavior is intended 
+% to avoid to open short positions on a bullish trend as explained in 
+% https://tradingsim.com/blog/macd/
+%
+function strategy = MACDStrategy(asset, slowMA, fastMA, ma)
+    emaSlow = movavg(asset.close,'exponential', fastMA);
+    emaFast = movavg(asset.close,'exponential', slowMA);
+    MACDLine = emaFast - emaSlow;
+    MACDSignalLine = movavg(MACDLine,'exponential', ma);
+    MACDbars = MACDLine - MACDSignalLine;
+    strategy = zeros(size(asset.close));
+    strategy(MACDbars > 0 & MACDLine > 0) = 1;
+    strategy(MACDbars < 0 & MACDLine < 0) = -1;
+    strategy = [0; strategy(1:end-1)];
+end
+
+%% mixStrategies function
+% Although these three strategies can be optimized individually with a good 
+% computer and a couple hours, when a more sophisticated mixture of strategies 
+% is intended to be implemented execution time of brute force is unpractical. 
+% One approach could be to use the individual best parameters of these strategies
+% and then optimize the mixture weights between them. Splitting the complexity 
+% overall optimization, but resulting in sub-optimal solutions, due to different
+% parameters might result optimal when a combination of strategies is intended 
+% as opposite of their individual strategy behavior. Although, several ways 
+% of mixing these strategies can be formulated, a simple weighted sum can be 
+% implemented as follows. 
+% This function considers that when the sum of the strategies positions is 
+% higher than 1, then the long positions is confirmed, or lower than -1 
+% indicates a short one. Also, when the sum results is between the range 
+% $[−1,1]$, no consensus is reached, therefore no positions is advised:
+%
+
+function newStrat = mixStrategies(strats)
+    sumStrat = sum(strats, 2);
+    newStrat = zeros(size(strats, 1), 1);
+    newStrat(sumStrat >= 1) = 1;
+    newStrat(sumStrat <= -1) = -1;
+end
+
+%% Fitness function
+% Given the higher number of parameters in a mixture of strategies, other 
+% optimization methods can be applied to find efficient solutions quickly. 
+% Previous works have make use of Metaheuristics Algorithms to find sub-optimal 
+% parameters for single strategies, such as the moving average in (Lee et al. 2005), 
+% or a mixture of them in (S.Tawfik, Badr, and Abdel-Rahman 2013) 
+% (Contreras, Hidalgo, and Núñez-Letamendia 2013) (Stasinakis et al. 2016) (Hu et al. 2015). 
+% Metaheuristics Algorithms are designed to operate as black boxes, in such 
+% way that their application results relatively easy. In this case, the open 
+% source AISearch toolbox(Reyna-Orta 2019) (https://github.com/aeroreyna/AISearchMatlab) 
+% provides the Metaheuristics implementation. 
+% For the case of the application of trading strategy optimization, these can 
+% be applied by selecting the dimensionality of the problem as the number of 
+% parameters to be adjusted, a function that transform each dimensionality 
+% between the desired boundaries and a fitness function that evaluates the 
+% solutions offers by the algorithm. If the MA, DEMA, MACD and RSI strategies 
+% are considered, then there is 2, 3, 4, and 4 parameters to be found respectively, 
+% considering the weight of the strategy as well. Therefore, the dimensionality 
+% of the problem becomes 13, and each dimension is manipulated to belong between 
+% the boundaries of each strategy. The following function shows an implementation 
+% of the designed fitness function, which calculates the strategy of each indicator 
+% and their weighted mixture. This mix strategy is evaluated against the 
+% historical data, and the final return is used as fitness value.
+%
+function y = fitnessFunction(x)
+  bounds = [1000, 1000, 1000, 500, 500, 50, 50, 50, 500, 1, 1, 1, 1];
+  MA_Strategy = movingAverageStrategy(asset, ceil(xT(1)));
+  DMA_Strategy = dualMovingAverageStrategy(asset, ceil(xT(2)), ceil(xT(3)));
+  MACD_Strategy = MACDStrategy(asset, ceil(xT(4)), ceil(xT(5)), ceil(xT(6)));
+  RSI_Strategy = rsiStrategy(asset, ceil(xT(7)), 100 - ceil(xT(8)), ceil(xT(9)));
+  Mix_Strategy = mixStrategies2(xT(end-3:end).*[MA_Strategy, DMA_Strategy, MACD_Strategy, RSI_Strategy]);
+  Mix_cumret = this.evaluateStrategy(asset, Mix_Strategy, fees);
+  y = assetR.Mix_cumret(end);
+end
+
+
+##### SOURCE END #####
+--></body></html>
